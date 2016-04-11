@@ -22,23 +22,29 @@ class ImportAuction < ActiveRecord::Base
     #   end
     # end
 
-    export_sheet = export_book.create_worksheet name: "商品编号"
-    export_row = export_sheet.row(0)
-    ["商品分类", "商品次级分类", "名称", "商品编号", "图片地址"].each do |name|
-      export_row.push(name)
-    end
-    index = 1
+    count = 0
     Auction.all.each do |auction|
       import_auctions = ImportAuction.where(category: auction.category, children_category: auction.children_category).limit(auction.quantity)
       import_auctions.each do |import_auction|
+
+        if count % 60000 == 0
+          @index = 1
+          @export_sheet = export_book.create_worksheet name: "商品编号#{(count/60000).succ}"
+          export_row = @export_sheet.row(0)
+          ["商品分类", "商品次级分类", "名称", "商品编号", "图片地址"].each do |name|
+            export_row.push(name)
+          end
+
+        end
         category, children_category, name, sku, img = import_auction.category, import_auction.children_category, import_auction.name, import_auction.sku, import_auction.img
-        export_row = export_sheet.row(index)
+        export_row = @export_sheet.row(@index)
         export_row.push(category)
         export_row.push(children_category)
         export_row.push(name)
         export_row.push(sku)
         export_row.push(img)
-        index += 1
+        @index += 1
+        count += 1
       end
     end
     export_book.write "#{Dir.home}/京东商品编号.xls"

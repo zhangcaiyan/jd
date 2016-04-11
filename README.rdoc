@@ -12,7 +12,7 @@ puts logs
 
 2:
 
-zero_auctions = Auction.all.select{|a| ImportAuction.where(category: a.category, children_category: a.name).count.zero?}
+zero_auctions = Auction.all.select{|a| ImportAuction.where(category: a.category, children_category: a.children_category).count.zero?}
 
 
 
